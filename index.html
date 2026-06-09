@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galaxy — Where Light Meets Motion</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,700;9..40,900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      cursor: none;
+      scrollbar-width: none;
+    }
+    html::-webkit-scrollbar { display: none; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: radial-gradient(ellipse at 20% 30%, #080018 0%, #02000a 45%, #010005 100%);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #cursor-dot {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+
+    #cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+
+    /* ── Sections ─────────────────────────────────────────── */
+    section {
+      position: relative;
+      min-height: 100vh;
+      z-index: 10;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overline {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #ff5c00;
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── S1: Hero ─────────────────────────────────────────── */
+    #s1 .inner {
+      text-align: center;
+      max-width: 860px;
+      padding: 2rem;
+    }
+
+    #s1 h1 {
+      font-size: clamp(3.5rem, 6vw, 7rem);
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+      margin-bottom: 1.3rem;
+    }
+
+    #s1 .tagline {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.42);
+      line-height: 1.75;
+      margin-bottom: 3.5rem;
+    }
+
+    .scroll-hint {
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      color: rgba(255, 255, 255, 0.2);
+      animation: fadePulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes fadePulse {
+      0%, 100% { opacity: 0.2; }
+      50%       { opacity: 0.9; }
+    }
+
+    /* ── S2: Vortex Galaxy ────────────────────────────────── */
+    #s2 .inner {
+      text-align: center;
+      max-width: 580px;
+      padding: 2rem;
+    }
+
+    #s2 h2 {
+      font-size: clamp(2.5rem, 4vw, 4.8rem);
+      font-weight: 900;
+      line-height: 1.04;
+      letter-spacing: -0.025em;
+      margin-bottom: 1.4rem;
+    }
+
+    #s2 .copy {
+      font-size: 1.05rem;
+      color: rgba(255, 255, 255, 0.4);
+      line-height: 1.85;
+    }
+
+    /* ── S3: Polaris ──────────────────────────────────────── */
+    #s3 { min-height: 100vh; }
+
+    #s3 .col {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      max-width: 290px;
+    }
+
+    #s3 .col-left  { left: 6vw; }
+    #s3 .col-right { right: 6vw; text-align: right; }
+
+    #s3 h2 {
+      font-size: clamp(1.9rem, 2.4vw, 3rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.9rem;
+    }
+
+    #s3 .copy {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.38);
+      line-height: 1.85;
+    }
+
+    /* ── S4: Waves ────────────────────────────────────────── */
+    #s4 { min-height: 100vh; }
+
+    #s4 .inner {
+      position: absolute;
+      left: 6vw;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(260px, 36vw, 520px);
+    }
+
+    #s4 h2 {
+      font-size: clamp(2.2rem, 3.5vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      margin-bottom: 1rem;
+    }
+
+    #s4 .copy {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.38);
+      line-height: 1.85;
+      margin-bottom: 2rem;
+    }
+
+    .btn-ghost {
+      display: inline-block;
+      padding: 0.85rem 2.4rem;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-decoration: none;
+      cursor: none;
+      transition: background 0.22s, border-color 0.22s;
+    }
+
+    .btn-ghost:hover {
+      background: #ff5c00;
+      border-color: #ff5c00;
+    }
+
+    /* ── S5: CTA ──────────────────────────────────────────── */
+    #s5 {
+      background: rgba(5, 0, 15, 0.88) !important;
+      text-align: center;
+    }
+
+    #s5 .inner {
+      max-width: 620px;
+      padding: 2rem;
+    }
+
+    #s5 h2 {
+      font-size: clamp(2.6rem, 4.5vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.03;
+      letter-spacing: -0.025em;
+      margin-bottom: 1.1rem;
+    }
+
+    #s5 .copy {
+      font-size: 1.05rem;
+      color: rgba(255, 255, 255, 0.38);
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-solid {
+      display: inline-block;
+      padding: 1rem 3.2rem;
+      background: #ff5c00;
+      border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #fff;
+      text-decoration: none;
+      cursor: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-solid:hover {
+      background: #e04f00;
+      transform: scale(1.04);
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── S1 · HERO · Exploded ──────────────────────────────── -->
+<section id="s1" data-formation="0" data-screen-label="01 — Hero">
+  <div class="inner">
+    <span class="overline">Particle Systems</span>
+    <h1>Where Light<br>Meets Motion</h1>
+    <p class="tagline">Three thousand points of living light.<br>Watch as matter remembers its form.</p>
+    <p class="scroll-hint">Scroll to explore ↓</p>
+  </div>
+</section>
+
+<!-- ── S2 · VORTEX GALAXY ─────────────────────────────────── -->
+<section id="s2" data-formation="1" data-screen-label="02 — Vortex Galaxy">
+  <div class="inner">
+    <span class="overline">Emergence</span>
+    <h2>The Gravity<br>of Form</h2>
+    <p class="copy">At the heart of every discovery lies a force that pulls everything together. We orbit the edges of the possible — watching chaos become cosmos.</p>
+  </div>
+</section>
+
+<!-- ── S3 · POLARIS ───────────────────────────────────────── -->
+<section id="s3" data-formation="2" data-screen-label="03 — Polaris">
+  <div class="col col-left">
+    <span class="overline">Precision</span>
+    <h2>Crystalline<br>Order</h2>
+    <p class="copy">Concentric rings and radial spokes — perfect symmetry at cosmic scale. Every particle placed with intent.</p>
+  </div>
+  <div class="col col-right">
+    <span class="overline">Depth</span>
+    <h2>Layer by<br>Layer</h2>
+    <p class="copy">Every orbit serves the whole. Precision and scale, always in balance. What you see is only the beginning.</p>
+  </div>
+</section>
+
+<!-- ── S4 · WAVES ─────────────────────────────────────────── -->
+<section id="s4" data-formation="3" data-screen-label="04 — Waves">
+  <div class="inner">
+    <span class="overline">Momentum</span>
+    <h2>Riding<br>the Current</h2>
+    <p class="copy">Six stacked fields of motion sweep right to left. Each wave carries its own frequency and voice — the cosmos in perpetual motion.</p>
+    <a class="btn-ghost" href="#s5">Begin →</a>
+  </div>
+</section>
+
+<!-- ── S5 · CTA ───────────────────────────────────────────── -->
+<section id="s5" data-formation="3" data-screen-label="05 — CTA">
+  <div class="inner">
+    <h2>Ready to<br>Launch?</h2>
+    <p class="copy">Your universe begins here. Let's build something that defies gravity.</p>
+    <a class="btn-solid" href="#">Get in Touch</a>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════════════
+  // THREE.JS INIT
+  // ═══════════════════════════════════════════════════════════
+  const canvas   = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 3000);
+  camera.position.set(0, 0, 520);
+
+  const N = 3000;
+
+  // ═══════════════════════════════════════════════════════════
+  // COLOURS — green spectrum, assigned once, persist through morphs
+  // ═══════════════════════════════════════════════════════════
+  const PALETTE = [
+    [100/255, 255/255, 120/255, 0.35], // lime green
+    [ 60/255, 230/255,  80/255, 0.25], // bright green
+    [  0/255, 220/255, 160/255, 0.20], // teal-green
+    [180/255, 255/255,  60/255, 0.12], // yellow-green
+    [220/255, 255/255, 220/255, 0.08], // white-green
+  ];
+  let acc = 0;
+  const THRESH = PALETTE.map(p => (acc += p[3], acc));
+
+  const colorsArr = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = Math.random();
+    let c   = PALETTE[PALETTE.length - 1];
+    for (let j = 0; j < THRESH.length; j++) {
+      if (r < THRESH[j]) { c = PALETTE[j]; break; }
+    }
+    colorsArr[i*3] = c[0]; colorsArr[i*3+1] = c[1]; colorsArr[i*3+2] = c[2];
+  }
+  const origColors = colorsArr.slice();
+
+  // Wave sheet colours (back→front, assigned per sheet)
+  const WAVE_COLS = [
+    [  0/255, 100/255,  60/255],
+    [  0/255, 160/255,  90/255],
+    [ 40/255, 210/255, 110/255],
+    [ 80/255, 245/255, 140/255],
+    [140/255, 255/255, 160/255],
+    [210/255, 255/255, 220/255],
+  ];
+
+  // ═══════════════════════════════════════════════════════════
+  // GEOMETRY — shared by both point systems
+  // ═══════════════════════════════════════════════════════════
+  const geometry = new THREE.BufferGeometry();
+  const posArr   = new Float32Array(N * 3);
+  geometry.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  geometry.setAttribute('color',    new THREE.BufferAttribute(colorsArr, 3));
+
+  // System A — sharp cores
+  const pA = new THREE.Points(geometry, new THREE.PointsMaterial({
+    size: 1.8, vertexColors: true, transparent: true, opacity: 1.0,
+    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+  }));
+  // System B — soft halo
+  const pB = new THREE.Points(geometry, new THREE.PointsMaterial({
+    size: 7, vertexColors: true, transparent: true, opacity: 0.13,
+    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+  }));
+  pA.frustumCulled = false;
+  pB.frustumCulled = false;
+  scene.add(pA, pB);
+
+  // Working position buffer
+  const curPos = new Float32Array(N * 3);
+
+  // ═══════════════════════════════════════════════════════════
+  // WAVE AUXILIARY ARRAYS (populated by buildWaves)
+  // ═══════════════════════════════════════════════════════════
+  const wBaseX     = new Float32Array(N);
+  const wBaseY     = new Float32Array(N);
+  const wSheet     = new Uint8Array(N);
+  const wColorBuf  = new Float32Array(N * 3);
+
+  // ═══════════════════════════════════════════════════════════
+  // FORMATION BUILDERS
+  // ═══════════════════════════════════════════════════════════
+
+  // ─ 1. EXPLODED
+  function buildExploded() {
+    const a = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const r   = 80 + Math.random() * 320;
+      const th  = Math.random() * Math.PI * 2;
+      const ph  = Math.acos(2 * Math.random() - 1);
+      const sp  = Math.sin(ph), cp = Math.cos(ph);
+      const st  = Math.sin(th), ct = Math.cos(th);
+      a[i*3]   = r * sp * ct + (Math.random() - 0.5) * 10;
+      a[i*3+1] = r * sp * st + (Math.random() - 0.5) * 10;
+      a[i*3+2] = r * cp      + (Math.random() - 0.5) * 10;
+    }
+    return a;
+  }
+
+  // ─ 2. GALAXY VORTEX
+  function buildGalaxy() {
+    const a = new Float32Array(N * 3);
+    let k = 0;
+    // Spiral arms (4 × 550 = 2200)
+    for (let arm = 0; arm < 4; arm++) {
+      const base = arm * (Math.PI / 2);
+      for (let i = 0; i < 550; i++, k++) {
+        const t      = i / 550;
+        const radius = 20 + t * 260;
+        const angle  = base + t * 4.2 + (Math.random() - 0.5) * 0.7;
+        a[k*3]   = radius * Math.cos(angle) + (Math.random() - 0.5) * 18;
+        a[k*3+1] = (Math.random() - 0.5) * 28;
+        a[k*3+2] = radius * Math.sin(angle) + (Math.random() - 0.5) * 18;
+      }
+    }
+    // Bright core (500)
+    for (let i = 0; i < 500; i++, k++) {
+      const r  = Math.random() * 35;
+      const th = Math.random() * Math.PI * 2;
+      const ph = Math.acos(2 * Math.random() - 1);
+      a[k*3]   = r * Math.sin(ph) * Math.cos(th);
+      a[k*3+1] = r * Math.sin(ph) * Math.sin(th);
+      a[k*3+2] = r * Math.cos(ph);
+    }
+    // Outer haze (300)
+    for (let i = 0; i < 300; i++, k++) {
+      const r  = 260 + Math.random() * 160;
+      const an = Math.random() * Math.PI * 2;
+      a[k*3]   = r * Math.cos(an);
+      a[k*3+1] = (Math.random() - 0.5) * 30;
+      a[k*3+2] = r * Math.sin(an);
+    }
+    return a; // k = 3000 ✓
+  }
+
+  // ─ 3. POLARIS STAR PATTERN
+  function buildPolaris() {
+    const a      = new Float32Array(N * 3);
+    let k        = 0;
+    const RADII  = [30, 60, 95, 130, 165, 200, 235, 270];
+    const COUNTS = [50, 100, 150, 200, 250, 300, 400, 550]; // sum = 2000
+    // Concentric rings
+    for (let ri = 0; ri < RADII.length; ri++) {
+      const r = RADII[ri], cnt = COUNTS[ri];
+      for (let i = 0; i < cnt; i++, k++) {
+        const ang = (i / cnt) * Math.PI * 2 + (Math.random() - 0.5) * 0.04;
+        a[k*3]   = r * Math.cos(ang);
+        a[k*3+1] = 0;
+        a[k*3+2] = r * Math.sin(ang);
+      }
+    }
+    // Radial spokes (12 spokes, 800 total)
+    const SPOKES = 12;
+    for (let s = 0; s < SPOKES; s++) {
+      const sa = (s / SPOKES) * Math.PI * 2;
+      const n  = Math.floor(800 / SPOKES) + (s < 800 % SPOKES ? 1 : 0);
+      for (let i = 0; i < n; i++, k++) {
+        const r = (i / n) * 270;
+        a[k*3]   = r * Math.cos(sa) + (Math.random() - 0.5) * 1.5;
+        a[k*3+1] = 0;
+        a[k*3+2] = r * Math.sin(sa) + (Math.random() - 0.5) * 1.5;
+      }
+    }
+    // Centre — fill remaining (~200)
+    while (k < N) {
+      const r = Math.random() * 8, ang = Math.random() * Math.PI * 2;
+      a[k*3] = r * Math.cos(ang); a[k*3+1] = 0; a[k*3+2] = r * Math.sin(ang);
+      k++;
+    }
+    return a;
+  }
+
+  // ─ 4. WAVES — populates auxiliary arrays; returns initial flat grid
+  function buildWaves() {
+    let k = 0;
+    for (let s = 0; s < 6; s++) {
+      const zOff = (s - 2.5) * 80;
+      const wc   = WAVE_COLS[s];
+      for (let i = 0; i < 500; i++, k++) {
+        const col = i % 50, row = Math.floor(i / 50);
+        const xb  = (col - 25)  * (window.innerWidth  / 50);
+        const yb  = (row - 4.5) * (window.innerHeight / 10);
+        wBaseX[k] = xb;
+        wBaseY[k] = yb;
+        wSheet[k] = s;
+        wColorBuf[k*3]   = wc[0];
+        wColorBuf[k*3+1] = wc[1];
+        wColorBuf[k*3+2] = wc[2];
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // PRE-BUILD ALL STATIC FORMATIONS
+  // ═══════════════════════════════════════════════════════════
+  const FP = [
+    buildExploded(),
+    buildGalaxy(),
+    buildPolaris(),
+  ];
+  buildWaves(); // init wave auxiliary data
+
+  curPos.set(FP[0]);
+  posArr.set(curPos);
+  geometry.attributes.position.needsUpdate = true;
+
+  // ═══════════════════════════════════════════════════════════
+  // MORPH SYSTEM
+  // ═══════════════════════════════════════════════════════════
+  let morphing    = false;
+  let mStart      = null; // Float32Array snapshot of curPos at morph start
+  let mTarget     = null; // null → wave formation drives its own target
+  let mStartTime  = 0;
+  const MORPH_MS  = 1800;
+
+  function easeIO(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t; }
+
+  function morphTo(target) {
+    mStart     = curPos.slice();
+    mTarget    = target;
+    mStartTime = performance.now();
+    morphing   = true;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FORMATION + CAMERA CONFIGS
+  // ═══════════════════════════════════════════════════════════
+  // rX/Y/Z = rest camera position, mX/Y = mouse influence, mS = lerp speed
+  const CFGS = [
+    { rX:0, rY:  0, rZ:520, mX:180, mY:110, mS:0.035 }, // 0 exploded
+    { rX:0, rY:380, rZ:380, mX: 60, mY: 35, mS:0.04  }, // 1 galaxy
+    { rX:0, rY:380, rZ:380, mX: 60, mY: 40, mS:0.04  }, // 2 polaris
+    { rX:0, rY:  0, rZ:600, mX: 30, mY: 20, mS:0.03  }, // 3 waves
+  ];
+
+  let formation = 0;
+
+  // Camera state
+  let camX = 0, camY = 0, camZ = 520;
+  const camBase   = { x:0, y:0, z:520 };
+  let camBFrom    = { x:0, y:0, z:520 };
+  let camBTo      = { x:0, y:0, z:520 };
+  let camBT0      = null;
+  const CAM_DUR   = 1500;
+
+  // ═══════════════════════════════════════════════════════════
+  // SET FORMATION
+  // ═══════════════════════════════════════════════════════════
+  function setFormation(f) {
+    if (f === formation) return;
+    const prev = formation;
+    formation  = f;
+
+    // Particle morph
+    if (f === 3) {
+      // Wave — morph handled dynamically in animate()
+      mStart     = curPos.slice();
+      mStartTime = performance.now();
+      mTarget    = null;
+      morphing   = true;
+      colorsArr.set(wColorBuf);
+      geometry.attributes.color.needsUpdate = true;
+    } else {
+      if (prev === 3) {
+        colorsArr.set(origColors);
+        geometry.attributes.color.needsUpdate = true;
+      }
+      morphTo(FP[f]);
+    }
+
+    // Camera transition
+    const cfg = CFGS[f];
+    camBFrom = { x: camBase.x, y: camBase.y, z: camBase.z };
+    camBTo   = { x: cfg.rX,    y: cfg.rY,    z: cfg.rZ    };
+    camBT0   = performance.now();
+
+    // Reset x tilt when leaving exploded formation
+    if (f !== 0) scene.rotation.x = 0;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // MOUSE + CURSOR
+  // ═══════════════════════════════════════════════════════════
+  const dot  = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let rawX   = window.innerWidth  / 2;
+  let rawY   = window.innerHeight / 2;
+  let ringX  = rawX, ringY = rawY;
+  let mNX    = 0, mNY = 0;
+
+  document.addEventListener('mousemove', e => {
+    rawX = e.clientX; rawY = e.clientY;
+    mNX  =  (e.clientX / window.innerWidth)  * 2 - 1;
+    mNY  = -((e.clientY / window.innerHeight) * 2 - 1);
+    dot.style.left = e.clientX + 'px';
+    dot.style.top  = e.clientY + 'px';
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // RESIZE
+  // ═══════════════════════════════════════════════════════════
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    buildWaves(); // recompute wave base positions for new viewport
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // INTERSECTION OBSERVER — threshold 0.4
+  // ═══════════════════════════════════════════════════════════
+  document.querySelectorAll('section[data-formation]').forEach(sec => {
+    new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) setFormation(+sec.dataset.formation);
+    }, { threshold: 0.4 }).observe(sec);
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ANIMATE
+  // ═══════════════════════════════════════════════════════════
+  let elapsed = 0;
+  let lastT   = performance.now();
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const now = performance.now();
+    const dt  = Math.min(now - lastT, 50); // cap at 50 ms
+    lastT     = now;
+    elapsed  += dt;
+
+    // ── Cursor ring lerp ─────────────────────────────────────
+    ringX += (rawX - ringX) * 0.1;
+    ringY += (rawY - ringY) * 0.1;
+    ring.style.left = ringX + 'px';
+    ring.style.top  = ringY + 'px';
+
+    // ── Scene rotation ───────────────────────────────────────
+    switch (formation) {
+      case 0:
+        scene.rotation.x += 0.0002;
+        scene.rotation.y += 0.0003;
+        break;
+      case 1:
+        scene.rotation.x *= 0.96; // damp any residual x tilt
+        scene.rotation.y += 0.0018;
+        break;
+      case 2:
+        scene.rotation.x *= 0.96;
+        scene.rotation.y += 0.006;
+        break;
+      default: // waves
+        scene.rotation.x *= 0.96;
+        break;
+    }
+
+    // ── Camera base transition (1.5 s lerp on formation change) ─
+    if (camBT0 !== null) {
+      const t = easeIO(Math.min((now - camBT0) / CAM_DUR, 1));
+      camBase.x = camBFrom.x + (camBTo.x - camBFrom.x) * t;
+      camBase.y = camBFrom.y + (camBTo.y - camBFrom.y) * t;
+      camBase.z = camBFrom.z + (camBTo.z - camBFrom.z) * t;
+      if (now - camBT0 >= CAM_DUR) camBT0 = null;
+    }
+
+    // ── Mouse-driven camera ──────────────────────────────────
+    const cfg = CFGS[formation];
+    const tX  = camBase.x + mNX * cfg.mX;
+    const tY  = camBase.y + mNY * cfg.mY;
+    camX += (tX       - camX) * cfg.mS;
+    camY += (tY       - camY) * cfg.mS;
+    camZ += (camBase.z - camZ) * 0.06;
+
+    camera.position.set(camX, camY, camZ);
+    camera.lookAt(0, 0, 0);
+
+    // ── Particle positions ───────────────────────────────────
+    if (formation === 3) {
+      // Waves — compute live positions each frame
+      const phase = -elapsed * 0.0014;
+      for (let s = 0; s < 6; s++) {
+        const amp  = 32 + s * 7;
+        const freq = 0.012 - s * 0.001;
+        const zOff = (s - 2.5) * 80;
+        const st   = s * 500, en = Math.min(st + 500, N);
+        for (let i = st; i < en; i++) {
+          const xb = wBaseX[i], yb = wBaseY[i];
+          const wy = yb + amp * Math.sin(freq * xb + phase + s * 0.9);
+          const wz = zOff + amp * 0.3 * Math.cos(freq * xb * 0.5 + phase);
+          if (morphing) {
+            const tt = easeIO(Math.min((now - mStartTime) / MORPH_MS, 1));
+            curPos[i*3]   = mStart[i*3]   + (xb - mStart[i*3])   * tt;
+            curPos[i*3+1] = mStart[i*3+1] + (wy - mStart[i*3+1]) * tt;
+            curPos[i*3+2] = mStart[i*3+2] + (wz - mStart[i*3+2]) * tt;
+          } else {
+            curPos[i*3] = xb; curPos[i*3+1] = wy; curPos[i*3+2] = wz;
+          }
+        }
+      }
+      if (morphing && now - mStartTime >= MORPH_MS) morphing = false;
+
+    } else if (morphing) {
+      // Standard morph for formations 0–2
+      const tt = easeIO(Math.min((now - mStartTime) / MORPH_MS, 1));
+      for (let i = 0; i < N * 3; i++) {
+        curPos[i] = mStart[i] + (mTarget[i] - mStart[i]) * tt;
+      }
+      if (now - mStartTime >= MORPH_MS) morphing = false;
+    }
+
+    // ── Flush to GPU ─────────────────────────────────────────
+    posArr.set(curPos);
+    geometry.attributes.position.needsUpdate = true;
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+}());
+</script>
+</body>
+</html>
